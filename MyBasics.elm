@@ -19,16 +19,103 @@ isEven : Int -> Bool
 isEven x = x % 2 == 0
 
 
--- Output is only properly defined when n>0, or when n==0 if x!=0. For inputs n<0 or x == n == 0 the output is horseshit and the solution is "don't feed those in". :)
--- If it's good enough for the larger language (0/0, etc) then why should I dodge ignoring invalid input and outputting potentially misleading gibberish as output for it?
-(^^) : Int -> Int -> Int
-(^^) x n =
-  if (n < 1) then 1
-  else if (n==1) then x
-  else if (isEven n) then
-    x*x ^^ (n//2)
+{-| concatenates filler onto beginning of list until it is greater than or equal to length.
+
+    padListLeft 5 [0] [1] == [0,0,0,0,1]
+    padListLeft 5 [0] [1,2,3,4,5,6] == [1,2,3,4,5,6]
+    padListLeft 5 [0,0,0] [1] == [0,0,0,0,0,0,1]
+-}
+
+padListLeft : Int -> List a -> List a -> List a
+padListLeft length filler list =
+  if List.length list >= length then
+    list
   else
-    x * (x*x ^^ ((n-1)//2))
+    padListLeft length filler (filler ++ list)
+
+
+{-| If the test succeeds, return integer incremented. Otherwise, just return integer.
+
+    goodStatus = Ready
+    incrementIf (goodStatus == Ready) 7 == 8
+
+    badStatus = Failed
+    incrementIf (badStatus == Ready) 7 == 7
+-}
+
+incrementIf : Bool -> Int -> Int
+incrementIf test total =
+  if test then
+    total + 1
+  else
+    total
+
+
+{-| If the test succeeds, return integer decremented. Otherwise, just return integer.
+
+    goodStatus = Ready
+    decrementIf (goodStatus == Ready) 7 == 6
+
+    badStatus = Failed
+    decrementIf (badStatus == Ready) 7 == 7
+-}
+
+decrementIf : Bool -> Int -> Int
+decrementIf test total =
+  if test then
+    total + 1
+  else
+    total
+
+
+{-| curry a function and second argument together, instead of first argument.
+Trade secret: this is just flip renamed :J
+
+    test = curryRight (<) 2
+    test 3 == False
+    test 1 == True
+-}
+
+curryRight : (a -> b -> c) -> b -> a -> c
+curryRight = flip 
+
+
+{-| Count how many things in a list evaluate to "true" given a test function.
+
+    count <testFunction> <list> == <count>
+    count isEven [1,2,3,4,5] == 2
+-}
+
+count : (a -> Bool) -> List a -> Int
+count test things =
+  List.foldl (\element accumulator -> incrementIf (test element) accumulator) 0 things
+
+
+{-| Positive Integer Exponentiation
+n<0 OR n == x == 0 return "Nothing"
+Everything else returns a Just <integer> result. 👍
+
+    3 ^^ 3 == Just 27 -- but no floats anywhere in sight ;)
+    0 ^^ 15 == Just 0
+    15 ^^ 0 == Just 1
+    0 ^^ 0 == Nothing
+    3 ^^ -2 == Nothing
+-}
+
+(^^) : Int -> Int -> Maybe Int
+(^^) x n =
+  if (n < 1) then
+    if x==0 && n == 0 then
+      Nothing
+    else if n == 0 then
+      Just 1
+    else
+      Nothing
+  else if (n==1) then Just x
+  else if (isEven n) then
+    (x*x) ^^ (n//2)
+  else
+    Just <| x * (Maybe.withDefault 1 <| (x*x) ^^ ((n-1)//2))
 
 
 -- Presumes monotonic margin
