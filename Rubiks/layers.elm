@@ -31,44 +31,71 @@ type Todo = Todo
 
 numberOfLayers : Int -> Int
 numberOfLayers cubeSize =
-  List.range 0 ( (cubeSize^2) - 1 )
-  |>MyBasics.count (isUncookedLayerValid cubeSize)
+  let
+    allUncookedLayers = List.range 0 ( (2^cubeSize) - 1 )
+{-
+    _ =
+      Debug.log "numberOfLayers"
+      <|toString
+          { allUncookedLayers = allUncookedLayers
+          }
+
+-}
+  in
+  MyBasics.count (isUncookedLayerValid cubeSize) allUncookedLayers
 
 
 {-| Renders the exact string matching which layers turn
-for the Nth valid layer combination for a cube of cubeSize,
-and we start counting at uncooked index uncookedIndex.
-Caller should usually pass in an uncookedIndex of 0,
-but it's heavily used internally for recursion.
+for the Nth valid layer combination for a cube of cubeSize.
 
-    getLayer <uncookedIndex:Int> <cubeSize:Int> <layerValidIndex:int>
+    getLayer <cubeSize:Int> <desiredLayer:int>
       == <layerString:Maybe String>
-    getLayer 0 3 0 == Just "1"
-    getLayer 0 5 16 == Just "345"
-    getLayer 0 3 100 == Nothing
-    getLayer 5 4 0 == Just "23" -- start at 5, invalid, so display for 6.
+    getLayer 3 0 == Just "1"
+    getLayer 5 16 == Just "345"
+    getLayer 3 100 == Nothing
 -}
 
-getLayer : Int -> Int -> Int -> Maybe String
-getLayer uncookedIndex cubeSize layerValidIndex =
-  if uncookedIndex < cubeSize ^ 2 then
-    if layerValidIndex==0 then
-      Just <| renderUncookedLayer uncookedIndex <| Char.toCode '1'
+getLayer : Int -> Int -> Maybe String
+getLayer cubeSize desiredLayer =
+  getLayerHelper 0 0 cubeSize desiredLayer
+
+
+-- Private (helper) functions
+
+getLayerHelper : Int -> Int -> Int -> Int -> Maybe String
+getLayerHelper uncookedIndex layerValidIndex cubeSize desiredLayer =
+  let
+    isValid =
+      isUncookedLayerValid cubeSize uncookedIndex
+
+{-
+    _ = Debug.log "getLayerHelper"
+    <|toString
+        { uncookedIndex = uncookedIndex
+        , layerValidIndex = layerValidIndex
+        , limit = ( 2 ^ cubeSize )
+        , desiredLayer = desiredLayer
+        }
+
+-}
+  in
+  if uncookedIndex < 2 ^ cubeSize then
+    if isValid && desiredLayer == layerValidIndex then
+      Just <| renderUncookedLayer (Char.toCode '1') uncookedIndex
     else
-      getLayer
+      getLayerHelper
         ( uncookedIndex + 1 )
-        cubeSize
-        ( decrementIf
-            (isUncookedLayerValid cubeSize uncookedIndex)
+        ( incrementIf
+            isValid
             layerValidIndex
         )
+        cubeSize
+        desiredLayer
   else
     -- search failed, we ran out of uncooked layers to check
     -- before we got to layerValidIndex. D:
     Nothing
 
-
--- Private (helper) functions
 
 {-| Recursive function to count how many times a list of binary digits
 changes between zero and one. Expects caller to feed it the head of the list
@@ -105,6 +132,16 @@ by the character at the code point following the preceding layer.
 
 renderUncookedLayer : Int -> Int -> String
 renderUncookedLayer digitCharCode uncookedIndex =
+{-
+  let
+    _ = Debug.log "renderUncookedLayer"
+    <|toString
+        { digitCharCode = digitCharCode
+        , uncookedIndex = uncookedIndex
+        }
+
+  in
+-}
   if uncookedIndex<1 then -- bottom out
     ""
   else
@@ -120,13 +157,16 @@ renderUncookedLayer digitCharCode uncookedIndex =
       String.append
         currentChar
         ( renderUncookedLayer
-          ( uncookedIndex // 2 )
           ( digitCharCode + 1 )
+          ( uncookedIndex // 2 )
         )
 
 
 isUncookedLayerValid : Int -> Int -> Bool
 isUncookedLayerValid cubeSize uncookedLayer =
+  if uncookedLayer == 0 then
+    False
+  else
     let
       bits =
         toBase 2 uncookedLayer
@@ -140,6 +180,16 @@ isUncookedLayerValid cubeSize uncookedLayer =
           headBit :: tailBits ->
             Just <| countCrosses headBit 0 tailBits
 
+{-
+      _ = Debug.log "isUncookedLayerValid"
+          <|toString
+              { cubeSize = cubeSize
+              , uncookedLayer = uncookedLayer
+              , bits = bits
+              , crosses = crosses
+              }
+
+-}
     in
       -- We only allow a maximum of two "crosses"
       -- between participation and non-participation of adjacent layers
@@ -230,18 +280,18 @@ layers =
     ,   "5"     -- 16,10 Fifth layer
     ,   "15"    -- 17,11 First and last.. or else .. ew!
 --  ,   "25"    -- 18,X  ew..?
---  ,   "125"   -- 19,X  Ew.
+    ,   "125"   -- 19,12 holding layer 2 and 3 still
 --  ,   "35"    -- 20,X  ew.. 
 --  ,   "135"   -- 21,X  ew~
 --  ,   "235"   -- 22,X  ...
-    ,   "1235"  -- 23,12 Yeah, I can handle this one.
-    ,   "45"    -- 24,13 pair of layers together
-    ,   "145"   -- 25,14 can use thumb to hold middle bit still for 5x5x5
+    ,   "1235"  -- 23,13 Yeah, I can handle this one.
+    ,   "45"    -- 24,14 pair of layers together
+    ,   "145"   -- 25,15 can use thumb to hold middle bit still for 5x5x5
 --  ,   "245"   -- 26,X  Nope.
-    ,   "1245"  -- 27,15 5x5x5 hold middle still
-    ,   "345"   -- 28,16 3 layers
-    ,   "1345"  -- 29,17 5x5x5 hold layer 2 still
-    ,   "2345"  -- 30,18 4 layers
-    ,   "12345" -- 31,19 5x5x5 rotate entire cube
+    ,   "1245"  -- 27,16 5x5x5 hold middle still
+    ,   "345"   -- 28,17 3 layers
+    ,   "1345"  -- 29,18 5x5x5 hold layer 2 still
+    ,   "2345"  -- 30,19 4 layers
+    ,   "12345" -- 31,20 5x5x5 rotate entire cube
     ]
 --}

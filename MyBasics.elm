@@ -63,7 +63,7 @@ incrementIf test total =
 decrementIf : Bool -> Int -> Int
 decrementIf test total =
   if test then
-    total + 1
+    total - 1
   else
     total
 
