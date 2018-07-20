@@ -1,0 +1,17 @@
+module Q exposing (..)
+
+import Expect exposing (Expectation)
+import Test exposing (..)
+
+blah : Test
+blah = 
+  describe "test"
+  [ test "test2"
+    <|\_ ->
+        let
+          _ = List.map
+              ( \_ -> Debug.log "#" 0 )
+              ( List.range 0 10000 )
+        in
+          Expect.equal 0 1
+  ]

@@ -51,7 +51,7 @@ for the Nth valid layer combination for a cube of cubeSize.
     getLayer <cubeSize:Int> <desiredLayer:int>
       == <layerString:Maybe String>
     getLayer 3 0 == Just "1"
-    getLayer 5 16 == Just "345"
+    getLayer 5 16 == Just "1245"
     getLayer 3 100 == Nothing
 -}
 
@@ -247,12 +247,12 @@ layers =
     ,   "123"  --  7,5  Everything EXCEPT back face
     ,   "4"    --  8,6  Just the back face
     ,   "14"   --  9,7  Front AND back faces
---  ,   "24"   -- 10,X  ew!
---  ,   "124"  -- 11,X  ew..
-    ,   "34"   -- 12,8  Back half
---  ,   "134"  -- 13,X  ew..
-    ,   "234"  -- 14,9  Everything EXCEPT front face
-    ,   "1234" -- 15,10 Turn entire cube in your hand
+--  ,   "24"   -- 10,X  
+    ,   "124"  -- 11,8  ew..
+    ,   "34"   -- 12,9  Back half
+    ,   "134"  -- 13,10 
+    ,   "234"  -- 14,11 Everything EXCEPT front face
+    ,   "1234" -- 15,12 Turn entire cube in your hand
     ]
 --}
 
