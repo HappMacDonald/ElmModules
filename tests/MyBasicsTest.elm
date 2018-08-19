@@ -27,6 +27,7 @@ myBasicsTests =
           MyBasics.factorial 5
           |>Expect.equal 120
     ]
+
   , describe "isEven"
     [ test "2 isEven"
       <|\_ ->
@@ -49,6 +50,7 @@ myBasicsTests =
           MyBasics.isEven -1000
           |>Expect.true "Pointless String"
     ]
+
   , describe "padListLeft"
     [ test "3 [0] [1] -> [0,0,1]"
       <|\_ ->
@@ -71,6 +73,7 @@ myBasicsTests =
           MyBasics.padListLeft -100 [0] [4]
           |>Expect.equal [4]
     ]
+
   , describe "incrementIf"
     [ test "incrementIf False 0 == 0"
         <|\_ ->
@@ -85,6 +88,7 @@ myBasicsTests =
             MyBasics.incrementIf True -1
             |>Expect.equal 0
     ]
+
   , describe "decrementIf"
     [ test "decrementIf False 0 == 0"
         <|\_ ->
@@ -99,6 +103,7 @@ myBasicsTests =
             MyBasics.decrementIf True -1
             |>Expect.equal -2
     ]
+
   , describe "curryRight -- lessThanThree = curryRight (<) 3" <|
     let
       lessThanThree =
@@ -114,6 +119,7 @@ myBasicsTests =
             4 |> lessThanThree
             |>Expect.false "Pointless String"
     ]
+
   , describe "count"
     [ fuzz (Fuzz.list Fuzz.int) "it's results should always match inputList |> List.filter test |> List.length"
       <|\input ->
@@ -126,6 +132,7 @@ myBasicsTests =
               |>MyBasics.count MyBasics.isEven
             )
     ]
+
   , describe "(^^)/intExponent"
     [ fuzz2
       ( Fuzz.intRange 0 100 )
@@ -165,6 +172,7 @@ myBasicsTests =
             Nothing
           <|MyBasics.intExponent 0 0
     ]
+
   , describe "summationUnbounded"
     [ test "summationUnbounded 0 0 (\n -> 2 ^ -n) ≈ 2"
       <|\_ ->
@@ -173,6 +181,7 @@ myBasicsTests =
           in
             Expect.within (Expect.Absolute 1e-14) result 2
     ]
+
   , describe "summationBounded"
     [ test "summationBounded 10 20 (\n -> n) == 165"
       <|\_ ->
@@ -181,4 +190,44 @@ myBasicsTests =
           in
             Expect.within (Expect.Absolute 1e-14) result 165
     ]
+
+  , describe "maybeAndThen2"
+    ( let
+        --simple example callback:
+        safeIntDivide : Int -> Int -> Maybe Int
+        safeIntDivide a b =
+          if b == 0 then
+            Nothing
+          else
+            Just ( a//b )
+
+      in
+        [ test "maybeAndThen2 safeDivide (Just 10) (Just 2) == Just 5"
+          <|\_ ->
+              Expect.equal
+                ( MyBasics.maybeAndThen2 safeIntDivide (Just 10) (Just 2) )
+                ( Just 5 )
+        , test "maybeAndThen safeIntDivide (Just 10) Nothing == Nothing"
+          <|\_ ->
+              Expect.equal
+                ( MyBasics.maybeAndThen2 safeIntDivide (Just 10) Nothing )
+                Nothing
+        , test "maybeAndThen2 safeIntDivide Nothing (Just 2) == Nothing"
+          <|\_ ->
+              Expect.equal
+                ( MyBasics.maybeAndThen2 safeIntDivide Nothing (Just 2) )
+                Nothing
+        , test "maybeAndThen2 safeIntDivide Nothing Nothing == Nothing"
+          <|\_ ->
+              Expect.equal
+                ( MyBasics.maybeAndThen2 safeIntDivide Nothing Nothing )
+                Nothing
+        , test "maybeAndThen2 safeIntDivide (Just 10) (Just 0) == Nothing"
+          <|\_ ->
+              Expect.equal
+                ( MyBasics.maybeAndThen2 safeIntDivide (Just 10) (Just 0) )
+                Nothing
+        ]
+    )
+
   ]

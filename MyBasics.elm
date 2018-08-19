@@ -1,4 +1,19 @@
-module MyBasics exposing (..)
+module MyBasics exposing
+  ( inf
+  , epsilon
+  , factorial
+  , isEven
+  , padListLeft
+  , incrementIf
+  , decrementIf
+  , curryRight
+  , count
+  , (^^)
+  , intExponent
+  , summationUnbounded
+  , summationBounded
+  , maybeAndThen2
+  )
 
 -- Might not keep...
 inf : Float
@@ -178,3 +193,41 @@ summationBounded start end generator =
   if start>end then 0
   else
     (generator start) + (summationBounded (start + 1) end generator)
+
+
+{-|Accept two Maybe-laden arguments into a callback function
+that expects 2 naked arguments, but will in fact return a maybe result.
+
+If either maybeAndThen2 argument is Nothing then result will be Nothing.
+If both are Just then those Justs get unwrapped, and the bare values
+inside get fed into the callback function to arrive at the final result
+
+.. which might still be a Nothing if that's what callback gives
+us after all. ;)
+
+    --simple example callback:
+    safeIntDivide : Int -> Int -> Maybe Int
+    safeIntDivide a b =
+      if b == 0 then
+        Nothing
+      else
+        Just ( a//b )
+
+    maybeAndThen2 safeIntDivide (Just 10) (Just 2) == Just 5
+    maybeAndThen2 safeIntDivide (Just 10) Nothing == Nothing
+    maybeAndThen2 safeIntDivide Nothing (Just 2) == Nothing
+    maybeAndThen2 safeIntDivide Nothing Nothing == Nothing
+    maybeAndThen2 safeIntDivide (Just 10) (Just 0) == Nothing
+-}
+
+maybeAndThen2 : (a -> b -> Maybe c) -> Maybe a -> Maybe b -> Maybe c
+maybeAndThen2 callback maybe1 maybe2 =
+  case maybe1 of
+    Just arg1 ->
+      Maybe.andThen (callback arg1) maybe2
+
+    Nothing ->
+      Nothing
+
+-- andThen2 f a b =
+  -- Maybe.map2 f a b |> Maybe.andThen identity
